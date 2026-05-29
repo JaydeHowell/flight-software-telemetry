@@ -26,12 +26,23 @@ void ATelemetryGenerator::BeginPlay()
 		.AsReusable()
 		.WithBroadcast();
 	
+	
+	if (!UdpSocket)
+	{
+		UE_LOG(LogTemp, Error, TEXT("FDIR: UDP socket failed to initialize."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Nominal: UDP socket initialized successfully."));
+	}
 }
 
 // Called every frame
 void ATelemetryGenerator::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	SendTelemetryPacket();
 }
 
 void ATelemetryGenerator::SendTelemetryPacket()
@@ -46,6 +57,8 @@ void ATelemetryGenerator::SendTelemetryPacket()
 	Writer << BusVoltage;
 	
 	int32 BytesSent = 0;
-	UdpSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteEndpoint.ToInternetAddr());
+	bool bSuccess = UdpSocket->SendTo(Writer.GetData(), Writer.Num(), BytesSent, *RemoteEndpoint.ToInternetAddr());
+
+	UE_LOG(LogTemp, Log, TEXT("Transmit attempt -> Success! %s | Bytes Pushed: %d"), bSuccess ? TEXT("True") : TEXT("False"), BytesSent);
 }
 
